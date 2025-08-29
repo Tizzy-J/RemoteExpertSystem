@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 // ===============================================
 // common/protocol.h
 // 统一协议（打包/拆包）最小实现
@@ -13,11 +13,10 @@
 #include <QtCore>
 #include <QtNetwork>
 
-// 统一的消息类型定义 —— 以后扩展只“新增值”，不要修改已存在的值
 enum MsgType : quint16 {
-    MSG_REGISTER         = 1,   // 注册（示例骨架暂未实现）
-    MSG_LOGIN            = 2,   // 登录（示例骨架暂未实现）
-    MSG_CREATE_WORKORDER = 3,   // 创建工单（示例骨架暂未实现）
+    MSG_REGISTER         = 1,   // 注册
+    MSG_LOGIN            = 2,   // 登录
+    MSG_CREATE_WORKORDER = 3,   // 创建工单
     MSG_JOIN_WORKORDER   = 4,   // 加入工单（设置roomId + username）
 
     MSG_TEXT             = 10,  // 文本聊天（先跑通端到端）
