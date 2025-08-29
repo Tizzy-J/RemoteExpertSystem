@@ -18,7 +18,8 @@ struct ClientCtx
     bool isAuthenticated = false; //登录认证状态标志
 };
 
-class RoomHub : public QObject {
+class RoomHub : public QObject
+{
     Q_OBJECT
 public:
     explicit RoomHub(QObject* parent=nullptr);
@@ -39,6 +40,8 @@ private:
     QHash<QTcpSocket*, ClientCtx*> clients_;
     // 房间索引：roomId -> sockets（允许多人）
     QMultiHash<QString, QTcpSocket*> rooms_;
+
+    QHash<QTcpSocket*,QByteArray>buffers_;
 
     DatabaseManager& dbManager_;
 

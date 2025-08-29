@@ -3,6 +3,7 @@
 RoomHub::RoomHub(QObject* parent) : QObject(parent),dbManager_(DatabaseManager::instance()){}
 RoomHub::~RoomHub(){}
 
+//Part 1.Tcp Server Manage
 // 实现监听功能
 bool RoomHub::startListening(const QHostAddress &address, quint16 port)
 {
@@ -107,14 +108,20 @@ void RoomHub::onDisconnected()
 
     // 从客户端映射表中移除
     clients_.erase(it);
+
+    buffers_.remove(sock);
+
     // 安排套接字在适当的时候删除
     sock->deleteLater();
     // 删除客户端上下文对象
     delete c;
 }
+//End of Part 1
 
+//Part 2 clients' data processing
 // 处理客户端发送的数据
-void RoomHub::onReadyRead() {
+void RoomHub::onReadyRead()
+{
     // 获取发送数据的客户端套接字
     auto* sock = qobject_cast<QTcpSocket*>(sender());
     if (!sock) return;  // 无效的套接字，直接返回
@@ -125,10 +132,9 @@ void RoomHub::onReadyRead() {
 
     ClientCtx* c = it.value();  // 获取客户端上下文
 
-    // 静态哈希表：为每个套接字维护一个接收缓冲区
-    static QHash<QTcpSocket*, QByteArray> buffers;
-    QByteArray& buf = buffers[sock];  // 获取当前客户端的缓冲区
-        QByteArray newData = sock->readAll();  // 读取新收到的数据
+    //为每个套接字维护一个接收缓冲区
+    QByteArray& buf = buffers_[sock];  // 获取当前客户端的缓冲区
+    QByteArray newData = sock->readAll();  // 读取新收到的数据
         if (!newData.isEmpty()) {  // 如果有新数据
             // 打印：客户端IP、收到的字节数、前20字节（十六进制，方便核对）
             qInfo() << "[TCP接收] 客户端" << sock->peerAddress().toString()
@@ -275,11 +281,8 @@ void RoomHub::handlePacket(ClientCtx* c, const Packet& p)
     }
     // 处理其他已认证的请求
     // 处理加入房间的请求
-    if (p.type == MSG_JOIN_WORKORDER) {
-        qInfo() << "[加入房间] 原始JSON数据：" << QJsonDocument(p.json).toJson(QJsonDocument::Compact);
-        
-        
-        
+    if (p.type == MSG_JOIN_WORKORDER)
+    {
         // 从数据包中解析房间ID和用户名
         const QString roomId = p.json.value("roomId").toString();
 
@@ -299,20 +302,12 @@ void RoomHub::handlePacket(ClientCtx* c, const Packet& p)
             user = "anonymous";
         }
 
-        qInfo() << "[加入房间] 准备调用joinRoom，roomId=" << roomId;
         // 加入指定房间
         joinRoom(c, roomId);
-        c->roomId = roomId;
-        qInfo() << "[加入房间] 调用joinRoom后，c->roomId=" << c->roomId;
-
 
         // 构造成功响应
         QJsonObject j{{"code",0},{"message","已加入"},{"roomId",roomId}};
         c->sock->write(buildPacket(MSG_SERVER_EVENT, j));
-
-        // 输出加入房间的信息
-        qInfo() << "用户" << user << "成功加入房间" << roomId
-                     << "，客户端房间ID已设置为：" << c->roomId;
         return;
     }
 
@@ -338,6 +333,8 @@ void RoomHub::handlePacket(ClientCtx* c, const Packet& p)
     QJsonObject j{{"code",404},{"message",QString("未知消息类型 %1").arg(p.type)}};
     c->sock->write(buildPacket(MSG_SERVER_EVENT, j));
 }
+//End of Part2
+
 
 // 让客户端加入指定房间
 // c: 客户端上下文
@@ -378,3 +375,4 @@ void RoomHub::broadcastToRoom(const QString& roomId, const QByteArray& packet, Q
         s->write(packet);  // 发送数据包
     }
 }
+

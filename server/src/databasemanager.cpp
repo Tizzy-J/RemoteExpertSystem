@@ -169,7 +169,7 @@ bool DatabaseManager::addUser(const QString &username, const QString &password, 
 
     QSqlQuery query(db_);
     query.prepare(R"(
-                  INSERT INTO users (username,password_hash,email,phone.user_type)
+                  INSERT INTO users (username,password_hash,email,phone,user_type)
                   VALUES(:username,:password_hash,:email,:phone,:user_type)
                   )");
     query.bindValue(":username",username);

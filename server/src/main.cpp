@@ -21,7 +21,7 @@ int main(int argc, char** argv)
     );
     // 将端口选项添加到解析器中
     parser.addOption(portOpt);
-    // 处理命令行参数，应用到应用程序中
+    // 处理命令行参// 静态哈希表：数，应用到应用程序中
     parser.process(app);
 
     // 从命令行解析器中获取端口值
